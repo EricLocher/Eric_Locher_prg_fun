@@ -54,6 +54,14 @@ class ParabolicCurve : ProcessingLite.GP21 {
     {
         for (int i = 0; i < numberOfLines; i++)
         {
+
+            if(i % 3 == 0)
+            {
+                Stroke(0, 0, 0);
+            } else
+            {
+                Stroke(128, 128, 128);
+            }
            
            float x = i * (axis2 / numberOfLines);
            float y = axis2 - (i * (axis1 / numberOfLines));
