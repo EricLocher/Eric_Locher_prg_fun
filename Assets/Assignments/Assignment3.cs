@@ -25,6 +25,7 @@ public class Assignment3 : ProcessingLite.GP21
             //Tar redan på musensposition relativt till unity ytan.
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
+
             //Ritar en linje mellan Cirkeln och Musens position.
             Line(circle.pos.x, circle.pos.y, mousePos.x, mousePos.y);
 
@@ -33,7 +34,7 @@ public class Assignment3 : ProcessingLite.GP21
 
             //Kallar Cirkel.move() och passerar in en hastighet samt riktningen. 
             circle.move(0.5f, direction);
-            Debug.Log(direction);
+        
         }
     }
 }
