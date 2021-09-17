@@ -37,15 +37,12 @@ public class Character : ProcessingLite.GP21
 
     public void draw()
     {
-        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
+        if (Input.GetAxisRaw("Horizontal") != 0)
         {
             speed.x += (2f * Input.GetAxisRaw("Horizontal")) * Time.deltaTime;
-            speed.y += (2f * Input.GetAxisRaw("Vertical")) * Time.deltaTime;
-
             pos.x += Time.deltaTime * speed.x;
-            pos.y += Time.deltaTime * speed.y;
-
         }
+
         else
         {
             if(speed.x > 0)
@@ -53,14 +50,26 @@ public class Character : ProcessingLite.GP21
             else if(speed.x < 0)
                 speed.x += 2f * Time.deltaTime;
 
+            pos.x += Time.deltaTime * speed.x;     
+        }
+
+
+        if(Input.GetAxisRaw("Vertical") != 0)
+        {
+            speed.y += (2f * Input.GetAxisRaw("Vertical")) * Time.deltaTime;
+            pos.y += Time.deltaTime * speed.y;
+        }
+
+        else
+        {
             if (speed.y > 0)
                 speed.y -= 2f * Time.deltaTime;
             else if (speed.y < 0)
                 speed.y += 2f * Time.deltaTime;
 
-            pos.x += Time.deltaTime * speed.x;
             pos.y += Time.deltaTime * speed.y;
         }
+
 
         Circle(pos.x, pos.y, 0.7f);
     }
