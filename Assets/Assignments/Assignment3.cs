@@ -3,6 +3,7 @@ using UnityEngine;
 public class Assignment3 : ProcessingLite.GP21
 {
     private Circle circle;
+    Vector2 mousePos;
 
     private void Start()
     {
@@ -13,74 +14,67 @@ public class Assignment3 : ProcessingLite.GP21
     {
         Background(Color.black);
 
-        //Kalla på Cirkeln.draw();
+        mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
         circle.draw();
 
-        //Om vänster musknapp är nedtryckt
+        if (Input.GetMouseButtonDown(0))
+        {
+            circle.velocity = Vector2.zero;
+            circle.pos = mousePos;
+        }
+
         if (Input.GetMouseButton(0))
         {
-            //Tar redan på musensposition relativt till unity ytan.
-            Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            //Ritar en linje mellan Cirkeln och Musens position.
             Line(circle.pos.x, circle.pos.y, mousePos.x, mousePos.y);
+        }
 
-            //Tar reda på x, y skillnaderna mellan cirkeln och muspekaren. T.ex för x så gör man Cirkel.pos.x - MousePos.x
+        if (Input.GetMouseButtonUp(0))
+        {
             Vector2 direction = new Vector2(circle.pos.x - mousePos.x, circle.pos.y - mousePos.y);
             float speed = Mathf.Sqrt(Mathf.Pow(direction.x, 2) + Mathf.Pow(direction.y, 2));
 
-            //Kallar Cirkel.move() och passerar in en hastighet samt riktningen.
             circle.move(speed, direction);
         }
+
     }
 }
 
 public class Circle : ProcessingLite.GP21
 {
-    //Cirkelns Position x,y. Vector2 beskriver ett objekten som håller i ett x och y värde.
     public Vector2 pos;
-
-    //Cirkelns diameter
+    
     public float diameter;
 
-    //Cirkelns Velocitet i x,y led. I detta fallet beskriver då Vector2 hur snabbt cirkeln färdas i x,y led.
     public Vector2 velocity = new Vector2(0, 0);
 
-    //Cirkelns Contructor, passerar in en "Startposition" för cirkeln samt ett diameter värde.
     public Circle(Vector2 pos, float diameter = 1)
     {
         this.pos = pos;
         this.diameter = diameter;
     }
 
-    //Rit funktion som ska kallas varje frame.
     public void draw()
     {
-        //Uppdaterar cirkelns position på x, y led genom att ta t.ex. x += velocity.x.
-        pos.x += Time.deltaTime * velocity.x;
-        pos.y += Time.deltaTime * velocity.y;
+        pos += Time.deltaTime * velocity;
 
-        //Kollar om cirkeln är utanför spelytan, om den är det så *-1 för att invertera riktningen
         if ((pos.x + diameter / 2) > Width || (pos.x - diameter / 2) < 0)
         {
             velocity.x *= -1;
         }
 
-        //Kollar om cirkeln är utanför spelytan, om den är det så *-1 för att invertera riktningen
         if ((pos.y + diameter / 2) > Height || (pos.y - diameter / 2) < 0)
         {
             velocity.y *= -1;
         }
 
-        //Rita cirkeln
         Circle(pos.x, pos.y, diameter);
     }
 
     public void move(float speed, Vector2 direction)
     {
-        speed = Mathf.Clamp(speed, 0f, 1f);
+        speed = Mathf.Clamp(speed, 0f, 0.5f);
 
-        //Sätt velocity.x till hastighet * riktning på x, y led. *-1 är till för att flippa riktningen så att bollen rör sig mot cirkeln.
         velocity.x = (speed * direction.x) * -1;
         velocity.y = (speed * direction.y) * -1;
     }
