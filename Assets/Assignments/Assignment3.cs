@@ -1,18 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class Assignment3 : ProcessingLite.GP21
 {
-    Circle circle;
+    private Circle circle;
 
-    void Start()
+    private void Start()
     {
         circle = new Circle(new Vector2(3, 5), 1);
     }
 
-    void Update()
+    private void Update()
     {
         Background(Color.black);
 
@@ -25,27 +22,27 @@ public class Assignment3 : ProcessingLite.GP21
             //Tar redan på musensposition relativt till unity ytan.
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-
             //Ritar en linje mellan Cirkeln och Musens position.
             Line(circle.pos.x, circle.pos.y, mousePos.x, mousePos.y);
 
             //Tar reda på x, y skillnaderna mellan cirkeln och muspekaren. T.ex för x så gör man Cirkel.pos.x - MousePos.x
             Vector2 direction = new Vector2(circle.pos.x - mousePos.x, circle.pos.y - mousePos.y);
+            float speed = Mathf.Sqrt(Mathf.Pow(direction.x, 2) + Mathf.Pow(direction.y, 2));
 
-            //Kallar Cirkel.move() och passerar in en hastighet samt riktningen. 
-            circle.move(0.5f, direction);
-        
+            //Kallar Cirkel.move() och passerar in en hastighet samt riktningen.
+            circle.move(speed, direction);
         }
     }
 }
 
 public class Circle : ProcessingLite.GP21
 {
-
     //Cirkelns Position x,y. Vector2 beskriver ett objekten som håller i ett x och y värde.
-    public Vector2 pos; 
+    public Vector2 pos;
+
     //Cirkelns diameter
     public float diameter;
+
     //Cirkelns Velocitet i x,y led. I detta fallet beskriver då Vector2 hur snabbt cirkeln färdas i x,y led.
     public Vector2 velocity = new Vector2(0, 0);
 
@@ -59,7 +56,6 @@ public class Circle : ProcessingLite.GP21
     //Rit funktion som ska kallas varje frame.
     public void draw()
     {
-
         //Uppdaterar cirkelns position på x, y led genom att ta t.ex. x += velocity.x.
         pos.x += Time.deltaTime * velocity.x;
         pos.y += Time.deltaTime * velocity.y;
@@ -82,6 +78,7 @@ public class Circle : ProcessingLite.GP21
 
     public void move(float speed, Vector2 direction)
     {
+        speed = Mathf.Clamp(speed, 0f, 1f);
 
         //Sätt velocity.x till hastighet * riktning på x, y led. *-1 är till för att flippa riktningen så att bollen rör sig mot cirkeln.
         velocity.x = (speed * direction.x) * -1;
