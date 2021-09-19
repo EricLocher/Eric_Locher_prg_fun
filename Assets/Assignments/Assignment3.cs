@@ -42,6 +42,7 @@ public class Assignment3 : ProcessingLite.GP21
 
 public class Circle : ProcessingLite.GP21
 {
+
     public Vector2 pos;
     
     public float diameter;
