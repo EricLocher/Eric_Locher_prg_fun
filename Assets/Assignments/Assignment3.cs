@@ -27,11 +27,12 @@ public class Assignment3 : ProcessingLite.GP21
         if (Input.GetMouseButton(0))
         {
             Line(circle.pos.x, circle.pos.y, mousePos.x, mousePos.y);
+
         }
 
         if (Input.GetMouseButtonUp(0))
         {
-            Vector2 direction = new Vector2(circle.pos.x - mousePos.x, circle.pos.y - mousePos.y);
+            Vector2 direction = new Vector2(mousePos.x - circle.pos.x, mousePos.y - circle.pos.y);
             float speed = direction.magnitude;
 
             circle.move(speed, direction);
@@ -74,9 +75,7 @@ public class Circle : ProcessingLite.GP21
 
     public void move(float speed, Vector2 direction)
     {
-        speed = Mathf.Clamp(speed, 0f, 1f);
-
-        velocity.x = (speed * direction.x) * -1;
-        velocity.y = (speed * direction.y) * -1;
+        velocity.x += (speed / direction.magnitude) * direction.x;
+        velocity.y += (speed / direction.magnitude) * direction.y;
     }
 }
