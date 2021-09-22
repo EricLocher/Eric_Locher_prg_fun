@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class Assignment4 : ProcessingLite.GP21
 {
-    Character gubbe;
+    testChar char1;
     // Start is called before the first frame update
     private void Start()
     {
-        gubbe = new Character(new Vector2(3,3), 5f);
+        char1 = new testChar(new Vector2(3,3), 5f);
     }
 
     // Update is called once per frame
@@ -14,19 +14,19 @@ public class Assignment4 : ProcessingLite.GP21
     {
         Background(0);
 
-        gubbe.draw();
+        char1.draw();
        
     }
 
 }
 
-public class Character : ProcessingLite.GP21
+public class testChar : ProcessingLite.GP21
 {
     public Vector2 pos;
     private Vector2 speed;
     private float acc;
 
-    public Character(Vector2 pos, float acc)
+    public testChar(Vector2 pos, float acc)
     {
         this.pos = pos;
         this.acc = acc;
