@@ -3,7 +3,7 @@ using UnityEngine;
 public class Assignment3 : ProcessingLite.GP21
 {
     private Circle circle;
-    Vector2 mousePos;
+    private Vector2 mousePos;
 
     private void Start()
     {
@@ -27,7 +27,6 @@ public class Assignment3 : ProcessingLite.GP21
         if (Input.GetMouseButton(0))
         {
             Line(circle.pos.x, circle.pos.y, mousePos.x, mousePos.y);
-
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -37,15 +36,13 @@ public class Assignment3 : ProcessingLite.GP21
 
             circle.move(speed, direction);
         }
-
     }
 }
 
 public class Circle : ProcessingLite.GP21
 {
-
     public Vector2 pos;
-    
+
     public float diameter;
 
     public Vector2 velocity = new Vector2(0, 0);
@@ -60,12 +57,11 @@ public class Circle : ProcessingLite.GP21
     {
         pos += Time.deltaTime * velocity;
 
-        if ((pos.x + diameter / 2) > Width || (pos.x - diameter / 2) < 0)
+        if ((pos.x + diameter / 2 > Width && velocity.x > 0) || (pos.x - diameter / 2 < 0 && velocity.x < 0))
         {
             velocity.x *= -1;
         }
-
-        if ((pos.y + diameter / 2) > Height || (pos.y - diameter / 2) < 0)
+        if ((pos.y + diameter / 2 > Height && velocity.y > 0) || (pos.y - diameter / 2 < 0 && velocity.y < 0))
         {
             velocity.y *= -1;
         }
