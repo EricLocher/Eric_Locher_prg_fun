@@ -20,6 +20,7 @@ public class Assignment4_version2 : ProcessingLite.GP21
 
         character.SetDirection(new Vector2(character.pos.x + Input.GetAxisRaw("Horizontal"), character.pos.y + Input.GetAxisRaw("Vertical")));
 
+
         if (Input.GetKeyDown(KeyCode.G))
         {
             if (character.gravityState == false) { character.gravityState = true; }
@@ -48,8 +49,14 @@ public class AccObject : ProcessingLite.GP21
 
     public void Update()
     {
+
         Gravity();
-        velocity += acc * Time.deltaTime;
+        if (acc == Vector2.zero)
+        {
+            velocity.x = Mathf.Lerp(velocity.x, 0, 0.01f);
+            velocity.y = Mathf.Lerp(velocity.y, 0, 0.01f);
+        }
+
         //Clamp magnitude, I clamp the "length" of the vector, not the direction. This defines a max velocity.
         velocity = Vector2.ClampMagnitude(velocity, 10f);
 
