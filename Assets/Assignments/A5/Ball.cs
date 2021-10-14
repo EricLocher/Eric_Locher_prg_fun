@@ -10,7 +10,7 @@ public class Ball : ProcessingLite.GP21
 
     public Ball(Player player)
     {
-        diameter = Random.Range(0.2f, 0.7f);
+        diameter = Random.Range(0.4f, 0.7f);
 
         while (true)
         {
@@ -43,8 +43,8 @@ public class Ball : ProcessingLite.GP21
 
     public void Draw()
     {
-        Stroke((int)color.r * 255, (int)color.g * 255, (int)color.b * 255, 255);
-        Fill((int)strokeColor.r * 255, (int)strokeColor.g * 255, (int)strokeColor.b * 255, 255);
+        Stroke(0, 0, 0, 0);
+        Fill((int)color.r * 255, (int)color.g * 255, (int)color.b * 255, 255);
         Circle(pos.x, pos.y, diameter);
         Stroke(255, 255, 255, 255);
 

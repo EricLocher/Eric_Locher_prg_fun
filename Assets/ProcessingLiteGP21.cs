@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 namespace ProcessingLite
 {
@@ -12,21 +14,23 @@ namespace ProcessingLite
 	/// </summary>
 	public class GP21 : MonoBehaviour
 	{
-		public const  int   MAXNumberOfObjects = 500;
-		private const float PointSize          = 0.02f;
+		public const int MAXNumberOfObjects = 500;
+		private const float PointSize = 0.02f;
 
 		public static float PStrokeWeight = 1;           //Processing
-		public static Color PStroke       = Color.white; //Processing
-		public static Color PFill         = Color.black; //Processing
+		public static Color PStroke = Color.white; //Processing
+		public static Color PFill = Color.black; //Processing
+		public static int PFontSize = 14;
 
 		internal static bool DrawStroke = true;
-		internal static bool DrawFill   = true;
+		internal static bool DrawFill = true;
 
 		//Private variables
 		private PLine _pLine;
 		private PRect _pRect;
 		private PShape _pShape;
 		private PEllipse _pEllipse;
+		private PText _pText;
 
 		private Camera _cameraRef;
 
@@ -39,6 +43,7 @@ namespace ProcessingLite
 			_pRect?.LateUpdate();
 			_pShape?.LateUpdate();
 			_pEllipse?.LateUpdate();
+			_pText?.LateUpdate();
 		}
 
 		public float Width
@@ -155,7 +160,7 @@ namespace ProcessingLite
 		{
 			_pShape ??= new PShape();
 			_pShape.ShapeKeys = new List<Vector2>(
-				new[] {pos1, pos2, pos3, pos4}
+				new[] { pos1, pos2, pos3, pos4 }
 				);
 			_pShape.ShapeMode = PShapeMode.Default;
 			_pShape.Shape(true, DrawFill);
@@ -193,7 +198,7 @@ namespace ProcessingLite
 		{
 			_pShape ??= new PShape();
 			_pShape.ShapeKeys = new List<Vector2>(
-				new[] {pos1, pos2, pos3}
+				new[] { pos1, pos2, pos3 }
 			);
 			_pShape.ShapeMode = PShapeMode.Default;
 			_pShape.Shape(true, DrawFill);
@@ -253,7 +258,7 @@ namespace ProcessingLite
 		/// </summary>
 		/// <param name="x">x-coordinate of the point</param>
 		/// <param name="y">y-coordinate of the point</param>
-		public void Point(int x, int y)
+		public void Point(float x, float y)
 		{
 			_pRect ??= new PRect();
 			_pRect.Point(x, y, PointSize);
@@ -294,6 +299,20 @@ namespace ProcessingLite
 			}
 			else _pEllipse.Circle(x, y, diameter);
 		}
+
+		/// <summary>
+		/// Draws Text to the screen.
+		/// </summary>
+		/// <param name="string">String to display</param>
+		/// <param name="x">x-coordinate of the text</param>
+		/// <param name="y">y-coordinate of the text</param>
+		public void Text(string text, float x, float y)
+		{
+			_pText ??= new PText();
+			var pos = _cameraRef.WorldToScreenPoint(new Vector3(x, y, 0));
+			_pText.Text(text, pos.x, pos.y);
+		}
+
 
 		/// <summary>
 		/// Using the BeginShape() and EndShape() functions allow creating more complex forms.
@@ -358,6 +377,15 @@ namespace ProcessingLite
 		{
 			PStrokeWeight = Mathf.Max(weight, 0f);
 			DrawStroke = PStrokeWeight != 0 && PStroke.a != 0;
+		}
+
+		/// <summary>
+		/// Sets the font size of the following text elements.
+		/// </summary>
+		/// <param name="size">font size</param>
+		public void TextSize(int size)
+		{
+			PFontSize = Mathf.Max(size, 0);
 		}
 
 		/// <summary>
@@ -426,11 +454,12 @@ namespace ProcessingLite
 	{
 		public delegate void LateReset();
 
-		public const    float ZOffset    = -0.001f; //offset between objects in depth.
-		internal static int   Background = 2;
+		public const float ZOffset = -0.001f; //offset between objects in depth.
+		internal static int Background = 2;
 		internal static float DrawZOffset; //current offset
 
 		private static Transform _holder;
+		private static Transform _canvas;
 
 #if !UNITY_2020_2_OR_NEWER && UNITY_EDITOR
 		private ProcessingLiteGP21()
@@ -464,6 +493,20 @@ namespace ProcessingLite
 			}
 		}
 
+		public static Transform Canvas
+		{
+			get
+			{
+				if (_canvas is { }) return _canvas;
+				var tmp = new GameObject("Canvas");
+				tmp.AddComponent<Canvas>();
+				tmp.AddComponent<CanvasScaler>();
+				tmp.AddComponent<GraphicRaycaster>();
+				tmp.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+				return _canvas = tmp.transform;
+			}
+		}
+
 		private void LateUpdate()
 		{
 			if (Background > -1)
@@ -488,7 +531,7 @@ namespace ProcessingLite
 		}
 	}
 
-	#if UNITY_EDITOR
+#if UNITY_EDITOR
 	[CustomEditor(typeof(ProcessingLiteGP21))]
 	public class ProcessingLiteEditor : Editor
 	{
@@ -499,7 +542,7 @@ namespace ProcessingLite
 			Destroy(this);
 		}
 	}
-	#endif
+#endif
 
 	public interface IObjectPooling
 	{
@@ -617,6 +660,8 @@ namespace ProcessingLite
 			//Check for line from list, re-use or create new.
 			if (CurrentID + 1 > _lines.Count || _lines[CurrentID] is null)
 			{
+				//create a new object with the following components:
+				//LineRenderer, MeshFilter, and MeshRenderer
 				var newObject = new GameObject("Shape" + (_lines.Count + 1).ToString("000"));
 				newObject.transform.parent = _holder ? _holder : _holder = ProcessingLiteGP21.Holder;
 				newLineRenderer = newObject.AddComponent<LineRenderer>();
@@ -638,13 +683,13 @@ namespace ProcessingLite
 				newLineRenderer = _lines[CurrentID];
 				newMeshFilter = _mesh[CurrentID];
 				newMeshRenderer = _meshRenderer[CurrentID];
-				newLineRenderer.gameObject.SetActive(true);
+				newLineRenderer.gameObject.SetActive(true); //enable the hole gameObject
 			}
 
 			ProcessingLiteGP21.DrawZOffset += ProcessingLiteGP21.ZOffset;
 			newLineRenderer.transform.position = new Vector3(0, 0, ProcessingLiteGP21.DrawZOffset);
 
-			if (GP21.DrawFill && loop && fill) ShapeFill(shapeKeys, newMeshFilter, newMeshRenderer);
+			if (GP21.DrawFill && loop && fill) ShapeFill(shapeKeys, newMeshFilter.mesh, newMeshRenderer);
 
 			if (GP21.DrawStroke)
 			{
@@ -658,29 +703,36 @@ namespace ProcessingLite
 			CurrentID = (CurrentID + 1) % GP21.MAXNumberOfObjects;
 		}
 
-		//TODO: make sure that the normals of the faces are pointing towards the camera
-		private void ShapeFill(Vector2[] shapeKeys, MeshFilter newMeshFilter, MeshRenderer newMeshRenderer)
+		private void ShapeFill(Vector2[] shapeKeys, Mesh mesh, MeshRenderer meshRenderer)
 		{
+			//reverse if facing the wrong direction so that the mesh will rendered correctly
+			if (Vector2.Angle(shapeKeys[0], shapeKeys[1]) -
+				Vector2.Angle(shapeKeys[0], shapeKeys[2]) > 0)
+				Array.Reverse(shapeKeys);
+
 			//Apply shape
 			var verts = new Vector3[shapeKeys.Length];
 			for (int i = 0; i < verts.Length; i++) verts[i] = shapeKeys[i];
+			mesh.vertices = verts;
 
-			newMeshFilter.mesh.vertices = verts;
-			int triLenght = shapeKeys.Length + 1;
+			//Map vertices ids to group of 3 making it into a face / triangle
+			int triLenght = shapeKeys.Length - 1;
 			var tri = new List<int>();
-			for (int i = 0; i + 2 < triLenght; i += 2)
+			for (int i = 0; i < triLenght; i += 2)
 			{
 				tri.Add(i);
 				tri.Add(i + 1);
 				tri.Add(i + 2);
 			}
 
+			//unless the shape is a triangle, close the fill. The last index would otherwise be out of bounds.
 			if (shapeKeys.Length > 3)
 				tri[tri.Count - 1] = 0;
-			newMeshFilter.mesh.triangles = tri.ToArray();
+			//Apply faces
+			mesh.triangles = tri.ToArray();
 
 			//Apply settings
-			newMeshRenderer.material.color = GP21.PFill;
+			meshRenderer.material.color = GP21.PFill;
 		}
 
 		private void ShapeStroke(Vector2[] shapeKeys, LineRenderer newLineRenderer)
@@ -760,7 +812,7 @@ namespace ProcessingLite
 
 			//apply size and position
 			Transform transform = newSpriteRenderer.transform;
-			transform.position   = new Vector3(x, y, ProcessingLiteGP21.DrawZOffset);
+			transform.position = new Vector3(x, y, ProcessingLiteGP21.DrawZOffset);
 			transform.localScale = new Vector3(PointSize, PointSize, 1f);
 
 			//Increment to next line in list
@@ -845,12 +897,73 @@ namespace ProcessingLite
 				return _sprite[CurrentID];
 			}
 
-			var newObject = new GameObject("Rect" + (_sprite.Count + 1).ToString("000"));
+			var newObject = new GameObject("Circle" + (_sprite.Count + 1).ToString("000"));
 			newObject.transform.parent = _holder ? _holder : _holder = ProcessingLiteGP21.Holder;
 			var newSpriteRenderer = newObject.AddComponent<SpriteRenderer>();
 			newSpriteRenderer.sprite = _squareTexture ?? GetSquareTexture();
 			_sprite.Add(newSpriteRenderer);
 			return newSpriteRenderer;
+		}
+	}
+
+	public class PText : IObjectPooling
+	{
+		private readonly List<Text> _text = new List<Text>();
+
+		private Transform _canvas;
+		private Font _font;
+
+		public int CurrentID { get; set; }
+
+		public void LateUpdate()
+		{
+			for (int i = CurrentID; i < _text.Count; i++)
+				if (_text[i].gameObject.activeSelf)
+					_text[i].gameObject.SetActive(false);
+				else break;
+
+			CurrentID = 0;
+		}
+
+		private Font GetFont() => _font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+		//AssetDatabase.LoadAssetAtPath<Font>(
+		//	"Packages/com.unity.2d.sprite/Editor/ObjectMenuCreation/DefaultAssets/Fonts/Arial.ttf");
+
+		public void Text(string text, float x, float y, bool swapColor = false)
+		{
+			Text newTextComponent = GetTextComponent();
+			newTextComponent.text = text;
+			newTextComponent.color = GP21.PFill;
+			newTextComponent.font = _font ?? GetFont();
+			newTextComponent.alignment = TextAnchor.MiddleCenter;
+			newTextComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
+			newTextComponent.verticalOverflow = VerticalWrapMode.Overflow;
+			newTextComponent.fontSize = GP21.PFontSize;
+
+			//apply size and position
+			RectTransform transform = newTextComponent.GetComponent<RectTransform>();
+			transform.anchorMin = Vector2.zero;
+			transform.anchorMax = Vector2.zero;
+			transform.position = new Vector3(x, y, ProcessingLiteGP21.DrawZOffset);
+
+			CurrentID = (CurrentID + 1) % GP21.MAXNumberOfObjects;
+
+		}
+
+		private Text GetTextComponent()
+		{
+			if (CurrentID < _text.Count && _text[CurrentID] is { })
+			{
+				_text[CurrentID].gameObject.SetActive(true);
+				return _text[CurrentID];
+			}
+
+			var newObject = new GameObject("Text" + (_text.Count + 1).ToString("000"));
+			newObject.transform.parent = _canvas ? _canvas : _canvas = ProcessingLiteGP21.Canvas;
+			var newTextComponent = newObject.AddComponent<Text>();
+
+			_text.Add(newTextComponent);
+			return newTextComponent;
 		}
 	}
 }

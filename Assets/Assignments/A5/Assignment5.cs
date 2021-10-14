@@ -9,12 +9,11 @@ public class Assignment5 : ProcessingLite.GP21
     private List<Ball> balls;
     private GameStates STATE;
     [SerializeField] private GameObject GameOver;
-
-
     void Start()
     {
-        STATE = GameStates.PLAYING;
         QualitySettings.vSyncCount = 0;
+
+        STATE = GameStates.PLAYING;
         player = new Player(new Vector2(Width / 2, Height / 2), 0.5f, Color.cyan);
         balls = new List<Ball>();
 
@@ -42,9 +41,11 @@ public class Assignment5 : ProcessingLite.GP21
             foreach (Ball ball in balls)
             {
 
-                float distance = Vector2.Distance(ball.pos, player.pos);
+                float dx = player.pos.x - ball.pos.x;
+                float dy = player.pos.y - ball.pos.y;
+                float distance = Mathf.Sqrt(dx * dx + dy * dy);
 
-                if (distance <= (ball.diameter / 2 + player.diameter / 2))
+                if (distance < ((ball.diameter / 2) + (player.diameter / 2)))
                 {
                     //Player has been hit
                     player.color = Color.magenta;
@@ -54,6 +55,7 @@ public class Assignment5 : ProcessingLite.GP21
                 ball.Update();
                 ball.Draw();
             }
+
         } else if(STATE.Equals(GameStates.GAMEOVER))
         {
             Background(125, 36, 30);
